@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -150,30 +151,32 @@ fun LibraryScreen(db: LibraryDb) {
 
             item {
                 Column(Modifier.padding(top = 22.dp)) {
+                    // The books stand upright against a recessed back panel, resting on the plank.
                     LazyRow(
-                        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Cozy.PaperDeep.copy(alpha = 0.55f)),
+                        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp),
+                        horizontalArrangement = Arrangement.spacedBy(3.dp),
                         verticalAlignment = Alignment.Bottom,
                     ) {
                         item {
-                            SpineChip(
+                            BookSpine(
                                 label = "All",
                                 color = Cozy.Walnut,
                                 count = totalCount,
                                 selected = selected == null,
-                                height = 52.dp,
-                                modifier = if (selected == null) Modifier.padding(bottom = 6.dp) else Modifier,
+                                width = 56.dp,
+                                height = 150.dp,
                             ) { selected = null }
                         }
                         items(shelves, key = { it.name }) { tag ->
                             val isSelected = selected == tag.name
-                            SpineChip(
+                            BookSpine(
                                 label = tag.name,
                                 color = Cozy.spineColor(tag.name),
                                 count = tag.count,
                                 selected = isSelected,
-                                height = (38 + (tag.name.hashCode() and 7) * 2).dp,
-                                modifier = if (isSelected) Modifier.padding(bottom = 6.dp) else Modifier,
                             ) { selected = if (isSelected) null else tag.name }
                         }
                     }

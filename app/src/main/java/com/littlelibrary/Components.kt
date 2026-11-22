@@ -3,6 +3,7 @@ package com.littlelibrary
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,12 +17,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +40,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -100,6 +105,94 @@ fun SpineChip(
                 fontFamily = FontFamily.Serif,
                 fontSize = 12.sp,
             )
+        }
+    }
+}
+
+/**
+ * A book standing upright on the shelf: the tag name runs down the spine, a count sits
+ * on a little label at the foot. Longer tag names make taller books, and every tag keeps
+ * its own colour and width. The open shelf is pulled out a little and edged in gold.
+ */
+@Composable
+fun BookSpine(
+    label: String,
+    color: Color,
+    count: Int,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    width: Dp? = null,
+    height: Dp? = null,
+    onClick: () -> Unit,
+) {
+    val h = height ?: (62f + label.length * 7.5f + (label.hashCode() and 15)).coerceIn(124f, 232f).dp
+    val w = width ?: (44 + ((label.hashCode() shr 4) and 3) * 4).dp
+    val lift by animateDpAsState(if (selected) 16.dp else 0.dp, label = "lift")
+    val shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+
+    Box(modifier.padding(bottom = lift)) {
+        Column(
+            modifier = Modifier
+                .width(w)
+                .height(h)
+                .clip(shape)
+                .background(color)
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(
+                            Color.White.copy(alpha = 0.14f),
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.20f),
+                        ),
+                    ),
+                )
+                .then(if (selected) Modifier.border(2.dp, Cozy.Gold, shape) else Modifier)
+                .clickable(onClick = onClick)
+                .drawBehind {
+                    val band = Cozy.Gold.copy(alpha = 0.8f)
+                    val stroke = 1.5.dp.toPx()
+                    fun line(y: Float) = drawLine(band, Offset(0f, y), Offset(size.width, y), stroke)
+                    line(8.dp.toPx())
+                    line(13.dp.toPx())
+                    line(size.height - 34.dp.toPx())
+                },
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Spacer(Modifier.height(20.dp))
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = label,
+                    modifier = Modifier
+                        .requiredWidth(h - 62.dp)
+                        .rotate(90f),
+                    color = Cozy.Card,
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.sp,
+                    letterSpacing = 0.5.sp,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .height(34.dp)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = count.toString(),
+                    color = Cozy.Card.copy(alpha = 0.8f),
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 12.sp,
+                )
+            }
         }
     }
 }
